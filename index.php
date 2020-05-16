@@ -69,21 +69,21 @@ echo start_connect();
         开始测试
     </button>
 
-    <div class="panel panel-default" style="margin-top: 15px">
+    <div class="panel panel-default" style="margin-top: 15px;display: none" id="process_panel">
         <div class="panel-heading">
             <h3 class="panel-title">进度</h3>
         </div>
         <div class="panel-body">
             <div class="form-group">
                 <div class="progress" id="progress_1">
-                    <div class="progress-bar progress-bar-success progress-bar-striped active" id="pro_success" style="width: 35%">
-                        35% 已完成
+                    <div class="progress-bar progress-bar-success progress-bar-striped active" id="pro_success" style="width: 0%">
+                        <span id="pro_success_text">35% 已完成</span>
                     </div>
-                    <div class="progress-bar progress-bar-warning progress-bar-striped active" id="pro_wait" style="width: 20%">
+                    <div class="progress-bar progress-bar-warning progress-bar-striped active" id="pro_wait" style="width: 0%">
                         20% 等待重试
                     </div>
-                    <div class="progress-bar progress-bar-danger progress-bar-striped active" id="pro_danger" style="width: 10%">
-                        10% 等待测试结束
+                    <div class="progress-bar progress-bar-danger progress-bar-striped active" id="pro_danger" style="width: 0%">
+                        <span id="pro_danger_text">10% 等待测试结束</span>
                     </div>
                 </div>
             </div>
@@ -122,29 +122,65 @@ echo start_connect();
         $('#host_input').attr("disabled","disabled");
         $('#test_count').attr("disabled","disabled");
 
+        $("#process_panel").show();
+
+        //初始化
+        $("#pro_danger").css('width',parseInt(0)+"%");
+        $("#pro_danger_text").text(parseInt(0)+"% 等待服务器测试");
+        $("#pro_success").css('width',0+"%");
+        $("#pro_success_text").text(0+"% 已完成");
+
+
         startTest($("#test_count").val(),$("#host_input").val());
         console.log("count:"+$("#test_count").val()+" host:"+$("#host_input").val());
 
     })
 
     function startTest(count,host) {
-
+        var sended = 0;
+        var wait = 0;
+        var success = 0;
+        var success_count = 0;
         for(var i=0;i<count;i++){
 
 
 
+            $("#pro_danger").css('width',parseInt(100 - (success_count/count*100))+"%");
+            $("#pro_danger_text").text(parseInt(100 - (success_count/count*100))+"% 等待服务器测试");
             $.ajax({url:"./test_server.php?host="+host,success:function(result){
 
                     var json_result = $.parseJSON(result);
                     if(json_result['result'] == "Host could not be reached."){
-                        var panel = "<div class=\"alert alert-danger\" role=\"alert\"><b>测试失败！</b>耗时 23ms <span style=\"float: right\">"+json_result['time']+"</span></div>"
+                        var panel = "<div class=\"alert alert-danger\" role=\"alert\"><b>"+json_result['result']+"</b>耗时 23ms <span style=\"float: right\">"+json_result['time']+"</span></div>"
                         $("#show_panel").prepend(panel);
 
                     }else{
-                        var panel = "<div class=\"alert alert-success\" role=\"alert\"><b>测试成功！</b>耗时 23ms <span style=\"float: right\">"+json_result['time']+"</span></div>"
+                        var panel = "<div class=\"alert alert-success\" role=\"alert\"><b>"+json_result['result']+"</b>耗时 23ms <span style=\"float: right\">"+json_result['time']+"</span></div>"
                         $("#show_panel").prepend(panel);
                     }
+                    success_count ++;
+
+                    $("#pro_danger").css('width',parseInt(100 - (success_count/count*100))+"%");
+                    $("#pro_danger_text").text(parseInt(100-(success_count/count*100))+"% 等待服务器测试");
+
+
+                    success = parseInt(success_count/count*100);
+                    $("#pro_success").css('width',success+"%");
+                    $("#pro_success_text").text(success+"% 已完成");
+
+                    //测试完成
+
+                    if(success == 100){
+                        $("#startTest").attr("disabled",false);//禁用input标签
+                        // $("#startTest").attr("disabled",false);//启用input标签
+                        $('#host_input').attr("disabled",false);
+                        $('#test_count').attr("disabled",false);
+
+                        // $("#process_panel").hide();
+
+                    }
                 }});
+
 
         }
 
