@@ -247,6 +247,11 @@ class Ping {
     if (!empty($output[1])) {
       // Search for a 'time' value in the result line.
       $response = preg_match("/time(?:=|<)(?<time>[\.0-9]+)(?:|\s)ms/", $output[1], $matches);
+        //if the os is Windows
+      if($response == 0){
+          $response = preg_match("/(?:=|<)(?<time>[\.0-9]+)(?:|\s)ms/", $output[1], $matches);
+      }
+
 
       // If there's a result and it's greater than 0, return the latency.
       if ($response > 0 && isset($matches['time'])) {

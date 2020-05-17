@@ -7,62 +7,66 @@
  */
 
 $conn = null;
-$servername = "localhost:3308/phpindex";
+$servername = "localhost:3308";
 $username = "root";
 $password = "";
+$dbname = "phpindex";
 
 
-function start_connect(){
+function start_connect()
+{
     global $servername;
     global $username;
     global $password;
+    global $dbname;
     try {
         global $conn;
-        $conn = new PDO("mysql:host=$servername;", $username, $password);
+        $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
         // 设置 PDO 错误模式为异常
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        echo "连接成功";
-        return "success";
-    }
-    catch(PDOException $e)
-    {
+//        echo "连接成功";
+        return $conn;
+    } catch (PDOException $e) {
         echo $e->getMessage();
         return "fail";
     }
 }
-function insert(){
+
+function insert($sql)
+{
     try {
-        start_connect();
-        global $conn;
+
+        $conn = start_connect();
         $conn->exec("use phpindex;");
         // 设置 PDO 错误模式，用于抛出异常
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $sql = "INSERT INTO phpindex (result,host,port,testtime)
-    VALUES (56.1, '127.0.0.1',80,'2020-1-17 14:51:00')";
         // 使用 exec() ，没有结果返回
         $conn->exec($sql);
-        echo "新记录插入成功";
-    }
-    catch(PDOException $e)
-    {
+    } catch (PDOException $e) {
         echo $sql . "<br>" . $e->getMessage();
     }
 }
 
 
-function query($sql){
-    global $conn;
+function query($sql)
+{
+
+    $conn = start_connect();
+
+    return $conn->query($sql);
 
 
 }
 
 
-function select($sql){
+function select($sql)
+{
     global $conn;
 
 }
 
-function delete($sql){
+function delete($sql)
+{
     global $conn;
 
 }
@@ -70,7 +74,8 @@ function delete($sql){
 /***
  * 创建存储表
  */
-function createTable(){
+function createTable()
+{
     global $conn;
     $sql = "CREATE TABLE `phpindex` (
         `id`  int(15) NOT NULL ,
@@ -84,8 +89,10 @@ function createTable(){
     $conn;
 }
 
-function close(){
+function close()
+{
     global $conn;
     $conn->close();
 }
+
 ?>
